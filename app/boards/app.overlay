@@ -1,0 +1,7 @@
+/ {
+    aliases {
+        // onboard led
+        app-led = "/leds/led_2";    // by path
+        // app-led = &green_led_2;     // by node
+    };
+};
