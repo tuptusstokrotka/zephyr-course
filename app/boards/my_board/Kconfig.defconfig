@@ -1,0 +1,3 @@
+if BOARD_MY_BOARD
+
+endif # BOARD_MY_BOARD
