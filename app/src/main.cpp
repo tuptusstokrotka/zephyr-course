@@ -1,7 +1,8 @@
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/drivers/sensor.h>
+#include "our_driver.h"
 
 #define LED_NODE DT_ALIAS(app_led) // Add flag: -DEXTRA_DTC_OVERLAY_FILE="boards/app.overlay"
 #define OUR_DRIVER_NODE DT_NODELABEL(our_driver0)
@@ -27,6 +28,8 @@ int main(void)
     if (!device_is_ready(our_driver_dev)) return -1;
 
     struct sensor_value val;
+
+    our_driver_set_sleep_ms(our_driver_dev, CONFIG_APP_HEARTBEAT_PERIOD_MS);
 
     while (1) {
         sensor_sample_fetch(our_driver_dev);

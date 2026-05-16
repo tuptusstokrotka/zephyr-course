@@ -3,6 +3,7 @@
 #include "zephyr/drivers/sensor.h"
 #include "zephyr/logging/log.h"
 #include <zephyr/drivers/gpio.h>
+#include "our_driver.h"
 
 LOG_MODULE_REGISTER(our_driver, LOG_LEVEL_INF);
 
@@ -10,23 +11,40 @@ LOG_MODULE_REGISTER(our_driver, LOG_LEVEL_INF);
 
 struct led_task_cfg {
     struct gpio_dt_spec led;
+};
+
+struct led_task_data {
     uint32_t sleep_ms;
 };
 
 static int our_driver_channel_get(const struct device *dev, enum sensor_channel chan, struct sensor_value *val){
     const struct led_task_cfg *led = dev->config;
+    const struct led_task_data *data = dev->data;
     if (gpio_pin_set_dt(&led->led, 0) < 0) return -EIO;
     LOG_INF("Our Driver channel get called for channel %d", chan);
-    k_msleep(led->sleep_ms);
+    k_msleep(data->sleep_ms);
     return 0;
 }
 
 static int our_driver_sample_fetch(const struct device *dev, enum sensor_channel chan){
     const struct led_task_cfg *led = dev->config;
+    const struct led_task_data *data = dev->data;
     if (gpio_pin_set_dt(&led->led, 1) < 0) return -EIO;
     LOG_INF("Our Driver sample fetch called for channel %d", chan);
-    k_msleep(led->sleep_ms);
+    k_msleep(data->sleep_ms);
     return 0;
+}
+
+int our_driver_set_sleep_ms(const struct device *dev, uint32_t sleep_ms){
+    struct led_task_data *data = dev->data;
+    data->sleep_ms = sleep_ms;
+    LOG_INF("Our Driver sleep ms set to %d ms", data->sleep_ms);
+    return 0;
+}
+int our_driver_get_sleep_ms(const struct device *dev){
+    const struct led_task_data *data = dev->data;
+    LOG_INF("Our Driver get sleep called. sleep: %d ms", data->sleep_ms);
+    return data->sleep_ms;
 }
 
 static DEVICE_API(sensor, api_iomico) = {
@@ -45,13 +63,15 @@ static int init(const struct device *dev){
 // https://docs.zephyrproject.org/latest/build/dts/howtos.html#write-device-drivers-using-devicetree-apis
 #define DEVICE_INST(inst)                                           \
     static const struct led_task_cfg my_cfg_##inst = {              \
-        .led        = GPIO_DT_SPEC_INST_GET(inst, gpios),           \
-        .sleep_ms   = DT_INST_PROP(inst, sleep_ms),                 \
+        .led = GPIO_DT_SPEC_INST_GET(inst, gpios),           \
+    };                                                              \
+    static struct led_task_data my_data_##inst = {                  \
+        .sleep_ms = DT_INST_PROP(inst, sleep_ms),                   \
     };                                                              \
     DEVICE_DT_INST_DEFINE(inst,                                     \
                         init,                                       \
                         NULL,                                       \
-                        NULL,                                       \
+                        &my_data_##inst,                            \
                         &my_cfg_##inst,                             \
                         POST_KERNEL,                                \
                         80,                                         \
