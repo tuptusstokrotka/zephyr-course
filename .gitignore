@@ -5,5 +5,8 @@ build
 .west
 deps
 
+twister-out
+
 .docs
 .vscode
+.cache

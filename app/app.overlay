@@ -1,4 +1,10 @@
 / {
+    our_driver0: our_driver {
+        compatible = "our,driver";
+        status = "okay";
+
+    };
+
     aliases {
         // onboard led
         app-led = "/leds/led_2";    // by path
