@@ -3,40 +3,34 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/sensor.h>
 
-/* The devicetree node identifier for the "led0" alias. */
-// #define LED_NODE DT_ALIAS(led0)
 #define LED_NODE DT_ALIAS(app_led) // Add flag: -DEXTRA_DTC_OVERLAY_FILE="boards/app.overlay"
 #define OUR_DRIVER_NODE DT_NODELABEL(our_driver0)
 
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
+static const struct device *our_driver_dev = DEVICE_DT_GET(OUR_DRIVER_NODE);
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 namespace{
     void api_test(){
-        const struct device *dev = DEVICE_DT_GET(OUR_DRIVER_NODE);
         struct sensor_value val;
-        auto ret = sensor_channel_get(dev, SENSOR_CHAN_AMBIENT_TEMP, &val);
-        LOG_INF("API test called. Value: %d", ret);
+        auto channel = sensor_channel_get(our_driver_dev, SENSOR_CHAN_AMBIENT_TEMP, &val);
+        auto sample = sensor_sample_fetch(our_driver_dev);
+
+        LOG_INF("API test called. Channel: %d. Sample fetched %d, Value: %d; %d", channel, sample, val.val1, val.val2);
     }
 }
 
 int main(void)
 {
     api_test();
-    bool led_state = true;
+    if (!device_is_ready(our_driver_dev)) return -1;
 
-    if (!gpio_is_ready_dt(&led)) return 0;
-
-    if (gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE) < 0) return 0;
+    struct sensor_value val;
 
     while (1) {
-        if (gpio_pin_toggle_dt(&led) < 0) return 0;
-
-        led_state = !led_state;
-        // LOG_INF("LED state: %s", led_state ? "ON" : "OFF");
-        // k_msleep(CONFIG_BLINK_SLEEP_LIST_MS);
-        k_msleep(CONFIG_APP_HEARTBEAT_PERIOD_MS);
+        sensor_sample_fetch(our_driver_dev);
+        sensor_channel_get(our_driver_dev, SENSOR_CHAN_AMBIENT_TEMP, &val);
     }
     return 0;
 }

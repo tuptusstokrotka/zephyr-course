@@ -1,3 +1,10 @@
 description: Simple driver for testing purposes
-name: "our,driver"
+compatible: "our,driver"
 include: base.yaml
+properties:
+  gpios:
+    type: phandle-array
+    required: true
+  sleep-ms:
+    type: int
+    required: true

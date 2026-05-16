@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20.0)
 
 list(APPEND BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+list(APPEND DTS_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/..)  # missing dts/bindigs/our,driver.yaml without this
 find_package(Zephyr REQUIRED)
 project(my_zephyr_app)
 
