@@ -8,3 +8,6 @@ properties:
   sleep-ms:
     type: int
     required: true
+  blinking-on:
+    type: boolean
+    required: false

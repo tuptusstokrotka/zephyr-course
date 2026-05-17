@@ -31,10 +31,16 @@ int main(void)
 
     our_driver_set_sleep_ms(our_driver_dev, CONFIG_APP_HEARTBEAT_PERIOD_MS);
 
+    struct led_task_data *data = (struct led_task_data *)our_driver_dev->data;
+
     while (1) {
-        // sensor_sample_fetch(our_driver_dev);
-        // sensor_channel_get(our_driver_dev, SENSOR_CHAN_AMBIENT_TEMP, &val);
-        k_msleep(100); // Avoid empty loop
+        if(data->blinking_on) {
+            sensor_sample_fetch(our_driver_dev);
+            sensor_channel_get(our_driver_dev, SENSOR_CHAN_AMBIENT_TEMP, &val);
+        }
+        else {
+            k_msleep(100); // Avoid empty loop
+        }
     }
     return 0;
 }

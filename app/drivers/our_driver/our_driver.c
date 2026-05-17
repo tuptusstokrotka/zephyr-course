@@ -2,20 +2,11 @@
 #include "zephyr/devicetree.h"
 #include "zephyr/drivers/sensor.h"
 #include "zephyr/logging/log.h"
-#include <zephyr/drivers/gpio.h>
 #include "our_driver.h"
 
 LOG_MODULE_REGISTER(our_driver, LOG_LEVEL_INF);
 
 #define DT_DRV_COMPAT our_driver
-
-struct led_task_cfg {
-    struct gpio_dt_spec led;
-};
-
-struct led_task_data {
-    uint32_t sleep_ms;
-};
 
 static int our_driver_channel_get(const struct device *dev, enum sensor_channel chan, struct sensor_value *val){
     const struct led_task_cfg *led = dev->config;
@@ -63,10 +54,11 @@ static int init(const struct device *dev){
 // https://docs.zephyrproject.org/latest/build/dts/howtos.html#write-device-drivers-using-devicetree-apis
 #define DEVICE_INST(inst)                                           \
     static const struct led_task_cfg my_cfg_##inst = {              \
-        .led = GPIO_DT_SPEC_INST_GET(inst, gpios),           \
+        .led = GPIO_DT_SPEC_INST_GET(inst, gpios),                  \
     };                                                              \
     static struct led_task_data my_data_##inst = {                  \
         .sleep_ms = DT_INST_PROP(inst, sleep_ms),                   \
+        .blinking_on = DT_INST_PROP_OR(inst, blinking_on, true),    \
     };                                                              \
     DEVICE_DT_INST_DEFINE(inst,                                     \
                         init,                                       \
